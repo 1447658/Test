@@ -1,0 +1,435 @@
+#include<stdio.h>
+#include<string.h>
+#include<stdlib.h>
+#define N 30
+#define MAX_LEN 15
+#define MAX_COURSE 6
+void ReadData(int score[][MAX_COURSE],char num[][MAX_LEN],char name[][MAX_LEN],int *p,int *q);
+void Menu();
+void SumandAverForStu(int score[][MAX_COURSE],int sumstu[],float averstu[],char name[][MAX_LEN],int nstu,int ncourse);
+void SumandAverForCourse(int score[][MAX_COURSE],int sumcourse[MAX_COURSE],float avercourse[MAX_COURSE],int nstu,int ncourse);
+void SortByNum(int score[][MAX_COURSE],char num[][MAX_LEN],char name[][MAX_LEN],int m,int n );
+void SortByName(int score[][MAX_COURSE],char num[][MAX_LEN],char name[][MAX_LEN],int m,int n);
+void PrintSum(int sumstu[],float averstu[],int score[][MAX_COURSE],char num[][MAX_LEN],char name[][MAX_LEN],int m,int n);
+void PrintData(int score[][MAX_COURSE],char num[][MAX_LEN],char name[][MAX_LEN],int m,int n);
+int SearchByNum(char num[][MAX_LEN],char tnum[MAX_LEN],int m);
+int SearchByName(char name[][MAX_LEN],char tname[MAX_LEN],int m);
+void Classfication(int score[][MAX_COURSE],int m,int n);
+void SelectionSort(int sumstu[],char num[][MAX_LEN],char name[][MAX_LEN],int p,int (*compare)(int a,int b),int score[][MAX_COURSE],int q);
+void SwapInt(int *a,int *b);
+void SwapChar(char (*a)[MAX_LEN],char (*b)[MAX_LEN]);
+int Ascending(int a,int b);
+int Descending(int a,int b);
+void PrintScore(int sumstu[],char num[][MAX_LEN],char name[][MAX_LEN],int m,int n);
+int main()
+{
+    int score[N][MAX_COURSE],pos,sumstu[N],sumcourse[MAX_COURSE],nstu,ncourse;
+    char name[N][MAX_LEN],tname[MAX_LEN],num[N][MAX_LEN],tnum[MAX_LEN];
+    int flag=1,reply,i;
+    float averstu[N],avercourse[MAX_COURSE];
+    printf("Number:200210830\nSubject_6\n\n");
+    do
+    {
+        Menu();
+        scanf("%d",&reply);
+        switch(reply)
+        {
+        case 1:
+            ReadData(score,num,name,&nstu,&ncourse);
+            if(nstu==0||ncourse==0)
+            {
+                printf("Invalid data!\n");
+                exit(0);
+            }
+            break;
+        case 2:
+            SumandAverForCourse(score,sumcourse,avercourse,nstu,ncourse);
+
+            break;
+        case 3:
+            SumandAverForStu(score,sumstu,averstu,name,nstu,ncourse);
+
+            break;
+        case 4:
+            SumandAverForStu(score,sumstu,averstu,name,nstu,ncourse);
+            SelectionSort(sumstu,num,name,nstu,Descending,score,ncourse);
+            printf("Data items in descending order \n");
+            PrintScore(sumstu,num,name,nstu,ncourse);
+            break;
+        case 5:
+            SumandAverForStu(score,sumstu,averstu,name,nstu,ncourse);
+            SelectionSort(sumstu,num,name,nstu,Ascending,score,ncourse);
+            printf("Data items in ascending order \n");
+            PrintScore(sumstu,num,name,nstu,ncourse);
+            break;
+        case 6:
+            SortByNum( score,  num,  name, nstu,ncourse );
+            PrintData(score,num,name,nstu,ncourse);
+            break;
+        case 7:
+            SortByName(score,num,name,nstu,ncourse);
+            PrintData(score,num,name,nstu,ncourse);
+            break;
+        case 8:
+            printf("Please input a number:");
+            getchar();
+            gets(tnum);
+            SumandAverForStu(score,sumstu,averstu,name,nstu,ncourse);
+            SelectionSort(sumstu,num,name,nstu,Descending,score,ncourse);
+            pos=SearchByNum(num,tnum,nstu);
+            if(pos!=-1)
+            {
+                printf("排名NO.%-5d",pos+1);
+                for(i=0; i<ncourse; i++)
+                {
+                    printf("%4d",score[pos][i]);
+                }
+                printf("\n");
+            }
+            else
+                printf("Not found!\n");
+
+
+            break;
+        case 9:
+            printf("Please input a name:");
+            getchar();
+            gets(tname);
+            SumandAverForStu(score,sumstu,averstu,name,nstu,ncourse);
+            SelectionSort(sumstu,num,name,nstu,Descending,score,ncourse);
+            pos=SearchByName(name,tname,nstu);
+            if(pos!=-1)
+            {
+                printf("排名NO.%-5d",pos+1);
+                for(i=0; i<ncourse; i++)
+                {
+                    printf("%4d",score[pos][i]);
+                }
+                printf("\n");
+            }
+            else
+                printf("Not found!\n");
+            break;
+        case 10:
+            Classfication(score,nstu,ncourse);
+            break;
+        case 11:
+            SumandAverForStu(score,sumstu,averstu,name,nstu,ncourse);
+            SelectionSort(sumstu,num,name,nstu,Descending,score,ncourse);
+            PrintSum(sumstu,averstu,score,num,name,nstu,ncourse);
+
+            break;
+        case 0:
+            exit(0);
+        default:
+            printf("Invalid input!\n");
+
+
+        }
+    }
+    while(flag==1);
+}
+void ReadData(int score[][MAX_COURSE],char num[][MAX_LEN],char name[][MAX_LEN],int *p,int *q)
+{
+    int i,j;
+    printf("输入学科数目(0<n<7)：");
+    scanf("%d",q);
+
+
+
+    for(i=0; i<N; i++)
+    {
+        printf("依次输入学号、姓名、各科考试成绩（输入第一科目成绩为负数视为结束，成绩输入%d个数据）:",*q);
+        scanf(" %s",num[i]);
+        scanf(" %s",name[i]);
+
+        for(j=0; j<*q; j++)
+        {
+            scanf("%d",&score[i][j]);
+            if(score[i][j]>100)
+            {
+                printf("Invalid data!\n");
+                exit(1);
+            }
+        }
+        if(score[i][0]<0)
+        {
+            break;
+        }
+    }
+
+    *p=i;
+    printf("共有 %d 个学生,考试科目为 %d 门",*p,*q);
+}
+void Menu()
+{
+    printf("\n1.Input record\n");
+    printf("2.Calculate total and average score of every course\n");
+    printf("3.Calculate total and average score of every student\n");
+    printf("4.Sort in descending order by total score of every student\n");
+    printf("5.Sort in ascending order by total score of every student\n");
+    printf("6.Sort in ascending order by number\n");
+    printf("7.Sort in dictionary order by name\n");
+    printf("8.Search by number\n");
+    printf("9.Search by name\n");
+    printf("10.Statistic analysis for every course\n");
+    printf("11.List record\n");
+    printf("0.Exit\n");
+    printf("Please enter your choice:\n");
+}
+void SumandAverForStu(int score[][MAX_COURSE],int sumstu[],float averstu[],char name[][MAX_LEN],int nstu,int ncourse)
+{
+    int i,j;
+    for(i=0; i<nstu; i++)
+    {
+        sumstu[i]=0;
+        for(j=0; j<ncourse; j++)
+        {
+            sumstu[i]+=score[i][j];
+        }
+        averstu[i]=(float)sumstu[i]/ncourse;
+        printf("%-10s",name[i]);
+        printf("总分：%-6d平均分%-6.1f\n",sumstu[i],averstu[i]);
+    }
+}
+void SumandAverForCourse(int score[][MAX_COURSE],int sumcourse[MAX_COURSE],float avercourse[MAX_COURSE],int nstu,int ncourse)
+{
+    int i,j;
+    for(i=0; i<ncourse; i++)
+    {
+        sumcourse[i]=0;
+        for(j=0; j<nstu; j++)
+        {
+            sumcourse[i]+=score[j][i];
+
+        }
+        avercourse[i]=(float)sumcourse[i]/nstu;
+        printf("课程%d：总分%7d平均分%7.1f\n",i+1,sumcourse[i],avercourse[i]);
+    }
+}
+void SelectionSort(int sumstu[],char num[][MAX_LEN],char name[][MAX_LEN],int p,int (*compare)(int a,int b),int score[][MAX_COURSE],int q)
+{
+    int i,j,k,m=0;
+    for(i=0; i<p-1; i++)
+    {
+        k=i;
+        for(j=i+1; j<p; j++)
+        {
+            if((*compare)(sumstu[j],sumstu[i]))
+            {
+                k=j;
+            }
+
+        }
+        if(k!=i)
+        {
+            SwapInt(&sumstu[k],&sumstu[i]);
+            SwapChar(&num[k],&num[i]);
+            SwapChar(&name[k],&name[i] );
+            for(m=0;m<q;m++)
+            {
+                SwapInt(&score[k][m],&score[i][m]);
+            }
+        }
+    }
+}
+void SwapInt(int *a,int *b)
+{
+    int temp;
+    temp=*a;
+    *a=*b;
+    *b=temp;
+}
+void SwapChar(char (*a)[MAX_LEN],char (*b)[MAX_LEN])
+{
+    char temp[MAX_LEN];
+    strcpy(temp,*a);
+    strcpy(*a,*b);
+    strcpy(*b,temp);
+}
+int Ascending(int a,int b)
+{
+    return a<b;
+}
+int Descending(int a,int b)
+{
+    return a>b;
+}
+void PrintScore(int sumstu[],char num[][MAX_LEN],char name[][MAX_LEN],int m,int n)
+{
+    int i;
+    for(i=0; i<m; i++)
+    {
+        printf("%4d",i+1);
+        printf("%10s",num[i]);
+        printf("%10s",name[i]);
+        printf("%4d\n",sumstu[i]);
+    }
+}
+void SortByNum(int score[][MAX_COURSE],char num[][MAX_LEN],char name[][MAX_LEN],int p,int q)
+{
+    int i,j,k,m;
+    for(i=0; i<p-1; i++)
+    {
+        k=i;
+        for(j=i+1; j<p; j++)
+        {
+            if(strcmp(num[j],num[i])<0)
+            {
+                k=j;
+            }
+        }
+        if(k!=i)
+        {
+            for(m=0; m<q; m++)
+            {
+                SwapInt(&score[k][m],&score[i][m]);
+            }
+            SwapChar(&num[k],&num[i]);
+            SwapChar(&name[k],&name[i]);
+        }
+
+    }
+}
+void SortByName(int score[][MAX_COURSE],char num[][MAX_LEN],char name[][MAX_LEN],int m,int n)
+{
+    int i,j,k,x;
+    for(i=0; i<m-1; i++)
+    {
+        k=i;
+        for(j=i+1; j<m; j++)
+        {
+            if(strcmp(name[j],name[i])<0)
+            {
+                k=j;
+            }
+        }
+        if(k!=i)
+        {
+            for(x=0; x<m; x++)
+            {
+                SwapInt(&score[k][x],&score[i][x]);
+            }
+            SwapChar(&num[k],&num[i]);
+            SwapChar(&name[k],&name[i]);
+
+        }
+
+    }
+}
+void PrintSum(int sumstu[],float averstu[],int score[][MAX_COURSE],char num[][MAX_LEN],char name[][MAX_LEN],int m,int n)
+{
+    int i,j;
+    for(i=0; i<m; i++)
+    {
+        printf("%5d\t",i+1);
+        printf("%-10s",num[i]);
+        printf("%-10s",name[i]);
+        for(j=0; j<n; j++)
+        {
+            printf("%4d",score[i][j]);
+        }
+        printf("%6d",sumstu[i]);
+        printf("%6.1f\n",averstu[i]);
+    }
+}
+void PrintData(int score[][MAX_COURSE],char num[][MAX_LEN],char name[][MAX_LEN],int m,int n)
+{
+    int i,j;
+    for(i=0; i<m; i++)
+    {
+        printf("%5d\t",i+1);
+        printf("%-10s",num[i]);
+        printf("%-10s",name[i]);
+        for(j=0; j<n; j++)
+        {
+            printf("%5d",score[i][j]);
+        }
+        printf("\n");
+    }
+}
+int SearchByNum(char num[][MAX_LEN],char tnum[MAX_LEN],int m)
+{
+    int i;
+    for(i=0; i<m; i++)
+    {
+        if(strcmp(tnum,num[i])==0)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+int SearchByName(char name[][MAX_LEN],char tname[MAX_LEN],int m)
+{
+    int i;
+    for(i=0; i<m; i++)
+    {
+        if(strcmp(tname,name[i])==0)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+void Classfication(int score[][MAX_COURSE],int m,int n)
+{
+    int i,j,excellent=0,fine=0,medium=0,pass=0,unpass=0;
+    for(i=0; i<n; i++)
+    {
+        excellent=0,fine=0,medium=0,pass=0,unpass=0;
+        for(j=0; j<m; j++)
+        {
+            if(score[j][i]<=100&&score[j][i]>=90)
+                excellent++;
+            if(score[j][i]>=80&&score[j][i]<=89)
+                fine++;
+            if(score[j][i]>=70&&score[j][i]<=79)
+                medium++;
+            if(score[j][i]>=60&&score[j][i]<=69)
+                pass++;
+            if(score[j][i]>=0&&score[j][i]<=59)
+                unpass++;
+        }
+        printf("课程%d：优秀人数%d 占比%.1f%% 良好人数%d 占比%.1f%% ",i+1,excellent,100*(float)excellent/m,fine,100*(float)fine/m);
+        printf("中等人数%d 占比%.1f%% 及格人数%d 占比%.1f%% 不及格人数%d 占比%.1f%%\n",medium,100*(float)medium/m,pass,100*(float)pass/m,unpass,100*(float)unpass/m);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
